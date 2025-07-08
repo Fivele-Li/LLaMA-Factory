@@ -28,6 +28,11 @@ from .metric import ComputeAccuracy, ComputeSimilarity, eval_logit_processor
 from .trainer import CustomSeq2SeqTrainer
 
 
+import random
+import math
+from transformers import TrainerCallback
+
+
 if TYPE_CHECKING:
     from transformers import Seq2SeqTrainingArguments, TrainerCallback
 
@@ -35,6 +40,47 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(__name__)
+
+
+class CustomEvalCallback(TrainerCallback):
+    def __init__(self, trainer, tokenizer, eval_dataset, freq=1, num_samples=50):
+        self.trainer = trainer
+        self.tokenizer = tokenizer
+        self.eval_dataset = eval_dataset
+        self.freq = freq
+        self.num_samples = num_samples
+        self._in_custom_eval = False  # ✅ 防止递归调用
+
+    def on_evaluate(self, args, state, control, **kwargs):
+        # ✅ 递归保护：若已在自定义评估中，直接返回
+        if self._in_custom_eval:
+            return
+
+        if state.global_step % self.freq != 0:
+            return
+
+        self._in_custom_eval = True  # ✅ 设置为正在评估
+        try:
+            # 子集抽样
+            indices = random.sample(range(len(self.eval_dataset)), self.num_samples)
+            sample_ds = self.eval_dataset.select(indices)
+
+            # ⚠️ 注意：evaluate(..., eval_dataset=...) 不会触发回调，但我们依然加保护以防未来逻辑变更
+            metrics = self.trainer.evaluate(eval_dataset=sample_ds, metric_key_prefix="eval")
+
+            loss = metrics.get("test_loss") or metrics.get("eval_loss")
+            if loss is not None:
+                ppl = math.exp(loss)
+                log_metrics = {"custom_eval_ppl": ppl}
+            else:
+                log_metrics = {}
+
+            if self.trainer.is_world_process_zero():
+                import wandb
+                wandb.log(log_metrics, step=state.global_step)
+
+        finally:
+            self._in_custom_eval = False  # ✅ 恢复标志位
 
 
 def run_sft(
@@ -90,6 +136,17 @@ def run_sft(
         **tokenizer_module,
         **metric_module,
     )
+
+    # Add CustomEvalCallback if eval_dataset exists and training is enabled
+    if training_args.do_train and dataset_module.get("eval_dataset") is not None:
+        custom_eval_callback = CustomEvalCallback(
+            trainer=trainer,
+            tokenizer=tokenizer,
+            eval_dataset=dataset_module["eval_dataset"],
+            freq=training_args.eval_steps or 500,  # 使用 eval_steps 或默认值
+            num_samples=100  # 可以根据需要调整，增加到100个样本
+        )
+        trainer.add_callback(custom_eval_callback)
 
     # Training
     if training_args.do_train:

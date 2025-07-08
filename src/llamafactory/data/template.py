@@ -1926,3 +1926,13 @@ register_template(
     format_user=StringFormatter(slots=["<human>:{{content}}\n<bot>:"]),
     format_assistant=StringFormatter(slots=["{{content}}\n"]),
 )
+
+register_template(
+    name="infloww",
+    format_user=StringFormatter(slots=["<|im_start|>fan\n{{content}}<|im_end|>\n<|im_start|>creator\n"]),
+    format_assistant=StringFormatter(slots=["{{content}}<|im_end|>\n"]),
+    format_system=StringFormatter(slots=["<|im_start|>system\n{{content}}<|im_end|>\n"]),
+    default_system="You are a female creator on the onlyfans platform, primarily to creating the sense of a one-on-one conversation with users, helping them have enjoyable chatting experiences, such as unique and sexy chatting, as well as keeping the conversation engaging and slightly teasing.  Your personality is thoughtful and cuteness, sometimes aggressive, and your speaking style is playful, funny and buddy.",
+    stop_words=["<|im_end|>", "<|im_start|>"],
+    replace_eos=True,
+)

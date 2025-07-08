@@ -456,6 +456,19 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to compute effective tokens per second."},
     )
+    # Custom evaluation callback parameters
+    use_custom_eval_callback: bool = field(
+        default=True,
+        metadata={"help": "Whether or not to use custom evaluation callback for sampling-based evaluation."},
+    )
+    custom_eval_samples: int = field(
+        default=100,
+        metadata={"help": "Number of samples to use for custom evaluation callback."},
+    )
+    custom_eval_freq: Optional[int] = field(
+        default=None,
+        metadata={"help": "Frequency of custom evaluation (in steps). If None, uses eval_steps."},
+    )
 
     def __post_init__(self):
         def split_arg(arg):
