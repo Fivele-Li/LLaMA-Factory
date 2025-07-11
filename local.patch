@@ -1,0 +1,182 @@
+diff --git a/data/dataset_info.json b/data/dataset_info.json
+index 7c980b97..26a2502a 100644
+--- a/data/dataset_info.json
++++ b/data/dataset_info.json
+@@ -632,5 +632,95 @@
+       "prompt": "content"
+     },
+     "folder": "python"
++  },
++  "v201": {
++    "file_name": "v2.0.1.jsonl",
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "messages"
++    },
++    "tags": {
++      "role_tag": "role",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator"
++    }
++  },
++  "v203": {
++    "file_name": "v2.0.3.jsonl",
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "messages"
++    },
++    "tags": {
++      "role_tag": "role",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator"
++    }
++  },
++  "v204": {
++    "file_name": "v2.0.4.jsonl",
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "messages"
++    },
++    "tags": {
++      "role_tag": "role",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator"
++    }
++  },
++  "v203_activate_dpo": {
++    "file_name": "v2.0.3_activate_dpo.jsonl",
++    "ranking": true,
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "conversations",
++      "chosen": "chosen",
++      "rejected": "rejected"
++    },
++    "tags": {
++      "role_tag": "from",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator",
++      "system_tag": "system"
++    }
++  },
++  "v2035_activate_dpo": {
++    "file_name": "v2.0.3.5_activate_dpo.jsonl",
++    "ranking": true,
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "conversations",
++      "chosen": "chosen",
++      "rejected": "rejected"
++    },
++    "tags": {
++      "role_tag": "from",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator",
++      "system_tag": "system"
++    }
++  },
++  "v20310_activate_dpo": {
++    "file_name": "v2.0.3.10_activate_dpo.jsonl",
++    "ranking": true,
++    "formatting": "sharegpt",
++    "columns": {
++      "messages": "conversations",
++      "chosen": "chosen",
++      "rejected": "rejected"
++    },
++    "tags": {
++      "role_tag": "from",
++      "content_tag": "value",
++      "user_tag": "fan",
++      "assistant_tag": "creator",
++      "system_tag": "system"
++    }
+   }
+-}
++}
+\ No newline at end of file
+diff --git a/examples/train_lora/llama3_lora_eval.yaml b/examples/train_lora/llama3_lora_eval.yaml
+index 60d7c2f3..22166000 100644
+--- a/examples/train_lora/llama3_lora_eval.yaml
++++ b/examples/train_lora/llama3_lora_eval.yaml
+@@ -1,6 +1,6 @@
+ ### model
+-model_name_or_path: meta-llama/Meta-Llama-3-8B-Instruct
+-adapter_name_or_path: saves/llama3-8b/lora/sft
++model_name_or_path: /mnt/sdb3/qwen2.5_32B
++adapter_name_or_path: 
+ trust_remote_code: true
+ 
+ ### method
+@@ -8,12 +8,12 @@ finetuning_type: lora
+ 
+ ### dataset
+ task: mmlu_test  # choices: [mmlu_test, ceval_validation, cmmlu_test]
+-template: fewshot
++template: qwen
+ lang: en
+ n_shot: 5
+ 
+ ### output
+-save_dir: saves/llama3-8b/lora/eval
++save_dir: saves/eval/qwen2.5-32b-sft
+ 
+ ### eval
+ batch_size: 4
+diff --git a/src/llamafactory/cli.py b/src/llamafactory/cli.py
+index 72085e2d..412dfa57 100644
+--- a/src/llamafactory/cli.py
++++ b/src/llamafactory/cli.py
+@@ -87,7 +87,7 @@ def main():
+         export_model()
+     elif command == Command.TRAIN:
+         force_torchrun = os.getenv("FORCE_TORCHRUN", "0").lower() in ["true", "1"]
+-        if force_torchrun or (get_device_count() > 1 and not use_ray()):
++        if False:# force_torchrun or (get_device_count() > 1 and not use_ray()):
+             master_addr = os.getenv("MASTER_ADDR", "127.0.0.1")
+             master_port = os.getenv("MASTER_PORT", str(random.randint(20001, 29999)))
+             logger.info_rank0(f"Initializing distributed tasks at: {master_addr}:{master_port}")
+diff --git a/src/llamafactory/data/template.py b/src/llamafactory/data/template.py
+index e87643da..316ee0ca 100644
+--- a/src/llamafactory/data/template.py
++++ b/src/llamafactory/data/template.py
+@@ -1349,3 +1349,13 @@ _register_template(
+     format_user=StringFormatter(slots=["<human>:{{content}}\n<bot>:"]),
+     format_assistant=StringFormatter(slots=["{{content}}\n"]),
+ )
++
++_register_template(
++    name="infloww",
++    format_user=StringFormatter(slots=["<|im_start|>fan\n{{content}}<|im_end|>\n<|im_start|>creator\n"]),
++    format_assistant=StringFormatter(slots=["{{content}}<|im_end|>\n"]),
++    format_system=StringFormatter(slots=["<|im_start|>system\n{{content}}<|im_end|>\n"]),
++    default_system="You are a female creator on the onlyfans platform, primarily to creating the sense of a one-on-one conversation with users, helping them have enjoyable chatting experiences, such as unique and sexy chatting, as well as keeping the conversation engaging and slightly teasing.  Your personality is thoughtful and cuteness, sometimes aggressive, and your speaking style is playful, funny and buddy.",
++    stop_words=["<|im_end|>", "<|im_start|>"],
++    replace_eos=True,
++)
+\ No newline at end of file
+diff --git a/src/llamafactory/hparams/parser.py b/src/llamafactory/hparams/parser.py
+index 3ffaa1f1..40b335d7 100644
+--- a/src/llamafactory/hparams/parser.py
++++ b/src/llamafactory/hparams/parser.py
+@@ -218,11 +218,11 @@ def get_train_args(args: Optional[Union[Dict[str, Any], List[str]]] = None) -> _
+         if training_args.report_to and training_args.report_to[0] not in ["wandb", "tensorboard"]:
+             raise ValueError("PPO only accepts wandb or tensorboard logger.")
+ 
+-    if training_args.parallel_mode == ParallelMode.NOT_DISTRIBUTED:
+-        raise ValueError("Please launch distributed training with `llamafactory-cli` or `torchrun`.")
++    # if training_args.parallel_mode == ParallelMode.NOT_DISTRIBUTED:
++    #     raise ValueError("Please launch distributed training with `llamafactory-cli` or `torchrun`.")
+ 
+-    if training_args.deepspeed and training_args.parallel_mode != ParallelMode.DISTRIBUTED:
+-        raise ValueError("Please use `FORCE_TORCHRUN=1` to launch DeepSpeed training.")
++    # if training_args.deepspeed and training_args.parallel_mode != ParallelMode.DISTRIBUTED:
++    #     raise ValueError("Please use `FORCE_TORCHRUN=1` to launch DeepSpeed training.")
+ 
+     if training_args.max_steps == -1 and data_args.streaming:
+         raise ValueError("Please specify `max_steps` in streaming mode.")

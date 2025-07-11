@@ -167,7 +167,7 @@ def _get_merged_dataset(
     model_args: "ModelArguments",
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "dpo"],  # 添加dpo
     return_dict: bool = False,
 ) -> Optional[Union["Dataset", "IterableDataset", dict[str, "Dataset"]]]:
     r"""Return the merged datasets in the standard format."""
@@ -176,7 +176,11 @@ def _get_merged_dataset(
 
     datasets = {}
     for dataset_name, dataset_attr in zip(dataset_names, get_dataset_list(dataset_names, data_args.dataset_dir)):
-        if (stage == "rm" and dataset_attr.ranking is False) or (stage != "rm" and dataset_attr.ranking is True):
+        # Allow ranking datasets (pairwise) to be used in both Reward Model (rm) and Direct Preference Optimization (dpo) stages.
+        is_ranking_stage = stage in ["rm", "dpo"]
+
+        # 如果当前阶段需要 ranking 数据，但数据集未标记为 ranking，或相反，则抛出错误。
+        if (is_ranking_stage and dataset_attr.ranking is False) or (not is_ranking_stage and dataset_attr.ranking is True):
             raise ValueError("The dataset is not applicable in the current training stage.")
 
         datasets[dataset_name] = _load_single_dataset(dataset_attr, model_args, data_args, training_args)
@@ -189,7 +193,7 @@ def _get_merged_dataset(
 
 def _get_dataset_processor(
     data_args: "DataArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "dpo"],  # 添加dpo到类型提示
     template: "Template",
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"],
@@ -217,7 +221,7 @@ def _get_dataset_processor(
         else:
             dataset_processor_class = SupervisedDatasetProcessor
 
-    elif stage == "rm":
+    elif stage in ["rm", "dpo"]:  # 修复：DPO训练也使用PairwiseDatasetProcessor
         dataset_processor_class = PairwiseDatasetProcessor
     elif stage == "kto":
         dataset_processor_class = FeedbackDatasetProcessor
@@ -231,7 +235,7 @@ def _get_preprocessed_dataset(
     dataset: Optional[Union["Dataset", "IterableDataset"]],
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "dpo"],  # 添加dpo
     template: "Template",
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"] = None,
@@ -279,7 +283,7 @@ def get_dataset(
     model_args: "ModelArguments",
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "dpo"],  # 添加dpo
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"] = None,
 ) -> "DatasetModule":

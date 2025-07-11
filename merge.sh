@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0,1 llamafactory-cli export examples/merge_lora/qwen2_lora_sft.yaml

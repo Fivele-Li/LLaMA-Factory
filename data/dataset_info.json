@@ -2,6 +2,17 @@
   "identity": {
     "file_name": "identity.json"
   },
+  "DPO_for_hallucination_clean": {
+    "file_name": "DPO_for_hallucination_clean.json",
+    "formatting": "alpaca",
+    "stage": "dpo",
+    "ranking": true,
+    "columns": {
+      "prompt": "prompt",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
   "alpaca_en_demo": {
     "file_name": "alpaca_en_demo.json"
   },
@@ -714,5 +725,95 @@
       "prompt": "content"
     },
     "folder": "python"
+  },
+  "v201": {
+    "file_name": "v2.0.1.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator"
+    }
+  },
+  "v203": {
+    "file_name": "v2.0.3.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator"
+    }
+  },
+  "v204": {
+    "file_name": "v2.0.4.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator"
+    }
+  },
+  "v203_activate_dpo": {
+    "file_name": "v2.0.3_activate_dpo.jsonl",
+    "ranking": true,
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    },
+    "tags": {
+      "role_tag": "from",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator",
+      "system_tag": "system"
+    }
+  },
+  "v2035_activate_dpo": {
+    "file_name": "v2.0.3.5_activate_dpo.jsonl",
+    "ranking": true,
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    },
+    "tags": {
+      "role_tag": "from",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator",
+      "system_tag": "system"
+    }
+  },
+  "v20310_activate_dpo": {
+    "file_name": "v2.0.3.10_activate_dpo.jsonl",
+    "ranking": true,
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    },
+    "tags": {
+      "role_tag": "from",
+      "content_tag": "value",
+      "user_tag": "fan",
+      "assistant_tag": "creator",
+      "system_tag": "system"
+    }
   }
 }

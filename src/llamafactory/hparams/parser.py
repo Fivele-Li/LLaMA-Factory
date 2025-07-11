@@ -241,11 +241,11 @@ def get_train_args(args: Optional[Union[dict[str, Any], list[str]]] = None) -> _
         if training_args.report_to and training_args.report_to[0] not in ["wandb", "tensorboard"]:
             raise ValueError("PPO only accepts wandb or tensorboard logger.")
 
-    if training_args.parallel_mode == ParallelMode.NOT_DISTRIBUTED:
-        raise ValueError("Please launch distributed training with `llamafactory-cli` or `torchrun`.")
+    # if training_args.parallel_mode == ParallelMode.NOT_DISTRIBUTED:
+    #     raise ValueError("Please launch distributed training with `llamafactory-cli` or `torchrun`.")
 
-    if training_args.deepspeed and training_args.parallel_mode != ParallelMode.DISTRIBUTED:
-        raise ValueError("Please use `FORCE_TORCHRUN=1` to launch DeepSpeed training.")
+    # if training_args.deepspeed and training_args.parallel_mode != ParallelMode.DISTRIBUTED:
+    #     raise ValueError("Please use `FORCE_TORCHRUN=1` to launch DeepSpeed training.")
 
     if training_args.max_steps == -1 and data_args.streaming:
         raise ValueError("Please specify `max_steps` in streaming mode.")
